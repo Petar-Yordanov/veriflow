@@ -1,0 +1,261 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-package:
+    name: Build / test / package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            python-version: "3.12"
+            exe-name: veriflow.exe
+            archive-name: veriflow-windows-x64
+          - os: ubuntu-latest
+            python-version: "3.12"
+            exe-name: veriflow
+            archive-name: veriflow-linux-x64
+          - os: macos-latest
+            python-version: "3.12"
+            exe-name: veriflow
+            archive-name: veriflow-macos-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: python -m pip install --upgrade pip poetry
+
+      - name: Install CLI dependencies
+        working-directory: packages/veriflow-cli
+        run: poetry install
+
+      - name: Install PyInstaller
+        working-directory: packages/veriflow-cli
+        run: poetry run python -m pip install pyinstaller
+
+      - name: Run CLI smoke flow
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          repo_root = Path.cwd()
+          cli_path = repo_root / "packages" / "veriflow-cli"
+          engine_path = repo_root / "packages" / "spec-engine"
+
+          if not cli_path.exists():
+              raise RuntimeError(f"CLI path not found: {cli_path}")
+          if not engine_path.exists():
+              raise RuntimeError(f"Engine path not found: {engine_path}")
+
+          candidates = [
+              engine_path / "examples_project",
+              engine_path / "examples" / "project",
+              engine_path / "example_project",
+              engine_path / "examples",
+          ]
+
+          example_project = next((p for p in candidates if p.exists()), None)
+          if example_project is None:
+              raise RuntimeError(f"Could not find example project folder under: {engine_path}")
+
+          suites_dir = example_project / "suites"
+          if not suites_dir.exists():
+              raise RuntimeError(f"Suites folder not found under: {example_project}")
+
+          suite_files = sorted(suites_dir.glob("*.yml"))
+          if not suite_files:
+              raise RuntimeError(f"No .yml suite file found under: {suites_dir}")
+
+          suite_path = suite_files[0]
+          environment_path = example_project / "environments" / "dev.yml"
+
+          report_dir = repo_root / ".tmp" / "reports"
+          event_jsonl = repo_root / ".tmp" / "events" / "run-events.jsonl"
+          machine_report = report_dir / "suite-machine.json"
+          report_path = repo_root / "artifacts" / "smoke-report.json"
+
+          report_dir.mkdir(parents=True, exist_ok=True)
+          event_jsonl.parent.mkdir(parents=True, exist_ok=True)
+          report_path.parent.mkdir(parents=True, exist_ok=True)
+
+          print(f"CLI path: {cli_path}")
+          print(f"Example project: {example_project}")
+          print(f"Suite path: {suite_path}")
+          print(f"Environment path: {environment_path}")
+
+          def run_cmd(args):
+              print("")
+              print(">", " ".join(str(x) for x in args))
+              result = subprocess.run(args, cwd=cli_path)
+              if result.returncode != 0:
+                  raise SystemExit(result.returncode)
+
+          poetry = [sys.executable, "-m", "poetry", "run", "veriflow"]
+
+          run_cmd([*poetry, "validate", "file", str(suite_path), "--environment", str(environment_path)])
+          run_cmd([*poetry, "validate", "project", str(example_project)])
+          run_cmd([*poetry, "discover", "suites", str(example_project)])
+          run_cmd([*poetry, "discover", "environments", str(example_project)])
+
+          print("")
+          print("Running suite with discovered environment name...")
+          run_cmd([*poetry, "run", "suite", str(suite_path), "--environment", "dev"])
+
+          print("")
+          print("Running suite with ad-hoc vars...")
+          run_cmd([
+              *poetry,
+              "run",
+              "suite",
+              str(suite_path),
+              "--var", "baseUrl=https://httpbin.org",
+              "--var", "username=test@example.com",
+          ])
+
+          print("")
+          print("Running suite with json output...")
+          run_cmd([*poetry, "run", "suite", str(suite_path), "--environment", "dev", "--json"])
+
+          print("")
+          print("Running suite with JSON report...")
+          run_cmd([*poetry, "run", "suite", str(suite_path), "--environment", "dev", "--report-json", str(report_path)])
+
+          print("")
+          print("Running suite with JSON event stream + JSON report...")
+          run_cmd([
+              *poetry,
+              "run",
+              "suite",
+              str(suite_path),
+              "--environment", "dev",
+              "--json",
+              "--event-jsonl", str(event_jsonl),
+              "--report-json", str(machine_report),
+          ])
+
+          print("")
+          print("Generated files:")
+          print(f"  Event JSONL:    {event_jsonl}")
+          print(f"  Machine report: {machine_report}")
+          print(f"  Report JSON:    {report_path}")
+          PY
+
+      - name: Build executable with PyInstaller
+        working-directory: packages/veriflow-cli
+        run: >
+          poetry run pyinstaller
+          --clean
+          --noconfirm
+          --onefile
+          --name veriflow
+          --collect-all spec_engine
+          src/veriflow_cli/main.py
+
+      - name: Stage package contents
+        shell: bash
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+
+          repo_root = Path.cwd()
+          stage_dir = repo_root / "dist-package"
+          if stage_dir.exists():
+              shutil.rmtree(stage_dir)
+
+          stage_dir.mkdir(parents=True, exist_ok=True)
+
+          exe_name = "${{ matrix.exe-name }}"
+          built_exe = repo_root / "packages" / "veriflow-cli" / "dist" / exe_name
+          if not built_exe.exists():
+              raise RuntimeError(f"Built executable not found: {built_exe}")
+
+          shutil.copy2(built_exe, stage_dir / exe_name)
+
+          for rel in [
+              Path("artifacts") / "smoke-report.json",
+              Path(".tmp") / "reports" / "suite-machine.json",
+              Path(".tmp") / "events" / "run-events.jsonl",
+          ]:
+              src = repo_root / rel
+              if src.exists():
+                  dest = stage_dir / rel
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(src, dest)
+
+          readme = stage_dir / "README.txt"
+          readme.write_text(
+              "Veriflow CLI build artifact\\n"
+              "\\n"
+              "Run the executable from a terminal.\\n"
+              "Windows: veriflow.exe\\n"
+              "Linux/macOS: ./veriflow\\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Archive package
+        shell: bash
+        run: |
+          python - <<'PY'
+          import shutil
+          from pathlib import Path
+
+          repo_root = Path.cwd()
+          archive_base = repo_root / "${{ matrix.archive-name }}"
+          stage_dir = repo_root / "dist-package"
+
+          if archive_base.with_suffix(".zip").exists():
+              archive_base.with_suffix(".zip").unlink()
+          if archive_base.with_suffix(".tar.gz").exists():
+              archive_base.with_suffix(".tar.gz").unlink()
+
+          fmt = "zip" if "${{ matrix.os }}" == "windows-latest" else "gztar"
+          shutil.make_archive(str(archive_base), fmt, root_dir=stage_dir)
+          print(f"Created archive format={fmt} base={archive_base}")
+          PY
+
+      - name: Upload packaged binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive-name }}
+          path: |
+            ${{ matrix.archive-name }}.zip
+            ${{ matrix.archive-name }}.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload raw reports artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ matrix.archive-name }}
+          path: |
+            artifacts/smoke-report.json
+            .tmp/reports/suite-machine.json
+            .tmp/events/run-events.jsonl
+          if-no-files-found: error
+          retention-days: 14

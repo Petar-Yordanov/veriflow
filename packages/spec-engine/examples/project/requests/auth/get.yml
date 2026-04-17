@@ -1,0 +1,11 @@
+formatVersion: "1.0"
+kind: "requestDefinition"
+id: "auth/get"
+name: "Simple get"
+request:
+  method: "GET"
+  baseUrl: "{{baseUrl}}"
+  path: "/get"
+outputs:
+  url:
+    path: "$.url"

@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "veriflow-cli"
+version = "0.1.0"
+description = "Thin CLI adapter for the shared Veriflow spec engine"
+authors = ["OpenAI <support@openai.com>"]
+readme = "README.md"
+packages = [{ include = "veriflow_cli", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.14"
+typer = "0.12.5"
+click = "8.1.7"
+rich = "13.7.1"
+spec-engine = { path = "../spec-engine", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+ruff = "^0.11.6"
+mypy = "^1.15.0"
+pyinstaller = "^6.19.0"
+
+[tool.poetry.scripts]
+veriflow = "veriflow_cli.main:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"

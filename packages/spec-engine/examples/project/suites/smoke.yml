@@ -1,0 +1,18 @@
+formatVersion: "1.0"
+kind: "testSuite"
+info:
+  name: "Smoke"
+globals:
+  variables: {}
+tests:
+  - id: "smoke"
+    name: "Smoke test"
+    steps:
+      - id: "get"
+        use: "../requests/auth/get.yml"
+        expect:
+          status: 200
+        extract:
+          finalUrl:
+            fromDefinition: "url"
+            scope: test

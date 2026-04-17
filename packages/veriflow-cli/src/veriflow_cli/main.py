@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from .app import app
+from veriflow_cli.app import app
 
 
 def main() -> None:
     app()
+
+
+if __name__ == "__main__":
+    main()

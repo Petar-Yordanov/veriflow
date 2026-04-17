@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from rich.console import Console
 
@@ -12,7 +11,7 @@ from .rendering.events import ReporterFactory
 class CliContext:
     console: Console = field(default_factory=Console)
 
-    def reporter_factory(self, *, json_output: bool, event_jsonl_path: Path | None):
+    def reporter_factory(self, *, json_output: bool, event_jsonl_path):
         return ReporterFactory(
             console=self.console,
             json_output=json_output,

@@ -61,42 +61,42 @@ def _render_event_text(event: EngineEvent) -> Text:
     payload = event.payload
 
     if kind == "suite.started":
-        return Text(f"> Suite started: {payload.get('name')}")
+        return Text(f"[SUITE START] {payload.get('name')}")
     if kind == "suite.finished":
         return Text(
-            "X Suite finished: "
-            f"status={payload.get('status')} "
+            f"[SUITE END] status={payload.get('status')} "
             f"passed={payload.get('passedCount', 0)} "
             f"failed={payload.get('failedCount', 0)} "
             f"skipped={payload.get('skippedCount', 0)}"
         )
     if kind == "test.started":
-        return Text(f"  > Test started: {payload.get('id')}")
+        return Text(f"  [TEST START] {payload.get('id')}")
     if kind == "test.finished":
-        return Text(f"  X Test finished: {payload.get('id')} status={payload.get('status')}")
+        return Text(f"  [TEST END] {payload.get('id')} status={payload.get('status')}")
     if kind == "step.started":
-        return Text(f"    > Step started: {payload.get('id')}")
+        return Text(f"    [STEP START] {payload.get('id')}")
     if kind == "request.prepared":
-        return Text(f"      -> Request: {payload.get('method')} {payload.get('url')}")
+        return Text(f"      [REQUEST] {payload.get('method')} {payload.get('url')}")
     if kind == "response.received":
         return Text(
-            f"      <- Response: {payload.get('statusCode')} "
+            f"      [RESPONSE] {payload.get('statusCode')} "
             f"in {round(float(payload.get('totalMs') or 0), 2)} ms"
         )
     if kind == "assertions.evaluated":
         return Text(
-            f"      OK Assertions: passed={payload.get('passed')} count={payload.get('count')}"
+            f"      [ASSERTIONS] passed={payload.get('passed')} "
+            f"count={payload.get('count')}"
         )
     if kind == "extraction.completed":
         names = ", ".join(payload.get("names") or [])
-        return Text(f"      => Extraction: passed={payload.get('passed')} names=[{names}]")
+        return Text(f"      [EXTRACTION] passed={payload.get('passed')} names=[{names}]")
     if kind == "artifact.saved":
-        return Text(f"      [saved] Artifact: {payload.get('path')}")
+        return Text(f"      [ARTIFACT] saved: {payload.get('path')}")
     if kind == "validation.error":
-        return Text(f"  ! Validation error [{payload.get('code')}]: {payload.get('message')}")
+        return Text(f"  [VALIDATION ERROR] [{payload.get('code')}] {payload.get('message')}")
     if kind == "runtime.error":
-        return Text(f"  ! Runtime error: {payload.get('message')}")
+        return Text(f"  [RUNTIME ERROR] {payload.get('message')}")
     if kind == "step.finished":
-        return Text(f"    X Step finished: {payload.get('id')} status={payload.get('status')}")
+        return Text(f"    [STEP END] {payload.get('id')} status={payload.get('status')}")
 
     return Text(json.dumps(event.to_dict()))

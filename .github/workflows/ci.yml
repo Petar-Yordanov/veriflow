@@ -228,7 +228,7 @@ jobs:
 
       - name: Run self-contained smoke suite
         shell: bash
-        run: ./scripts/pipeline-smoke.sh
+        run: bash ./scripts/pipeline-smoke.sh
 
       - name: Upload smoke output
         if: always()
@@ -264,7 +264,7 @@ jobs:
 
       - name: Run expected-failure contract checks
         shell: bash
-        run: ./scripts/pipeline-negative.sh
+        run: bash ./scripts/pipeline-negative.sh
 
       - name: Upload expected-failure logs
         if: always()

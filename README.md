@@ -61,9 +61,9 @@ go build -o veriflow ./cmd/veriflow
 Self-contained pipeline checks:
 
 ```bash
-./scripts/pipeline-smoke.sh
-./scripts/pipeline-negative.sh
-./scripts/pipeline-all.sh
+bash ./scripts/pipeline-smoke.sh
+bash ./scripts/pipeline-negative.sh
+bash ./scripts/pipeline-all.sh
 ```
 
 `pipeline-smoke.sh` contains only successful E2E scenarios. Expected failures are kept in `pipeline-negative.sh` so normal smoke logs are not polluted with intentional errors.

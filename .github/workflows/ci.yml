@@ -30,7 +30,7 @@ jobs:
           set -euo pipefail
           test -f go.mod || { echo "go.mod not found at repository root"; exit 1; }
           test -f VERSION || { echo "VERSION not found at repository root"; exit 1; }
-          test -f main.go || { echo "main.go not found at repository root"; exit 1; }
+          test -f cmd/veriflow/main.go || { echo "cmd/veriflow/main.go not found"; exit 1; }
 
       - name: Set up Go
         uses: actions/setup-go@v7
@@ -80,7 +80,7 @@ jobs:
             -trimpath \
             -ldflags "-X veriflow/internal/engine.EngineVersion=${{ steps.version.outputs.version }} -X veriflow/internal/engine.BuildCommit=${GITHUB_SHA} -X veriflow/internal/engine.BuildDate=${build_date}" \
             -o .tmp/bootstrap/veriflow \
-            .
+            ./cmd/veriflow
 
       - name: Verify built version
         shell: bash
@@ -195,7 +195,7 @@ jobs:
         run: go test -count=1 ./...
 
       - name: Build CLI natively
-        run: go build -trimpath -o ${{ runner.os == 'Windows' && 'veriflow-test.exe' || 'veriflow-test' }} .
+        run: go build -trimpath -o ${{ runner.os == 'Windows' && 'veriflow-test.exe' || 'veriflow-test' }} ./cmd/veriflow
 
   smoke:
     name: Positive pipeline smoke
@@ -345,7 +345,7 @@ jobs:
             -trimpath `
             -ldflags $ldflags `
             -o "dist/$env:EXECUTABLE_NAME" `
-            .
+            ./cmd/veriflow
 
           if (-not (Test-Path "dist/$env:EXECUTABLE_NAME")) {
             throw "Go build output not found: dist/$env:EXECUTABLE_NAME"

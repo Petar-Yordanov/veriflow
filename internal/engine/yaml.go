@@ -91,7 +91,7 @@ func validateYAMLNode(node *yaml.Node, depth int, aliases *int) error {
 				return fmt.Errorf("YAML mapping key %q must be a string at line %d:%d", key.Value, key.Line, key.Column)
 			}
 			if _, exists := seen[key.Value]; exists {
-				return fmt.Errorf("duplicate YAML key %q at line %d:%d", key.Value, key.Line, key.Column)
+				return fmt.Errorf("duplicate mapping key %q in YAML at line %d:%d", key.Value, key.Line, key.Column)
 			}
 			seen[key.Value] = struct{}{}
 			if err := validateYAMLNode(value, depth+1, aliases); err != nil {

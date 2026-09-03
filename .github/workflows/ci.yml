@@ -30,7 +30,15 @@ jobs:
           set -euo pipefail
           test -f go.mod || { echo "go.mod not found at repository root"; exit 1; }
           test -f VERSION || { echo "VERSION not found at repository root"; exit 1; }
-          test -f cmd/veriflow/main.go || { echo "cmd/veriflow/main.go not found"; exit 1; }
+          if [ ! -f cmd/veriflow/main.go ]; then
+            echo "cmd/veriflow/main.go not found in the checked-out commit"
+            echo "Working directory: $(pwd)"
+            echo "Files under cmd/:"
+            find cmd -maxdepth 2 -type f -print 2>/dev/null | sort || true
+            echo "Git-tracked cmd paths:"
+            git ls-files cmd || true
+            exit 1
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@v7

@@ -4,10 +4,16 @@ dist/
 build/
 coverage.out
 *.coverprofile
-veriflow
-veriflow.exe
-example-api
-example-api.exe
+
+# Root-level local binaries only.
+# Leading slashes are intentional: unanchored names such as `veriflow`
+# would also ignore source directories like cmd/veriflow/.
+/veriflow
+/veriflow.exe
+/example-api
+/example-api.exe
+/read-into-clipboard
+/read-into-clipboard.exe
 
 # Generated example artifacts
 examples/project/artifacts/

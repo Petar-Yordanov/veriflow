@@ -1,0 +1,11 @@
+# Optional project-wide defaults. CLI flags always take precedence.
+runtime:
+  runTimeoutMs: 60000
+  suiteTimeoutMs: 30000
+  testTimeoutMs: 10000
+  cleanupTimeoutMs: 5000
+  maxResponseBytes: 10485760
+  artifactsRoot: artifacts
+
+ci:
+  failIfNoTests: true

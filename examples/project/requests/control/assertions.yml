@@ -1,0 +1,8 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "control/assertions"
+request:
+  method: GET
+  baseUrl: "{{apiAlias}}"
+  path: "/api/assertions"
+

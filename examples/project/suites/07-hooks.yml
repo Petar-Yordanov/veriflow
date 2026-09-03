@@ -1,0 +1,58 @@
+formatVersion: "1.0"
+kind: testSuite
+id: hooks
+info:
+  name: "07 Lifecycle hooks"
+  description: "Exercises beforeAll/afterAll resource setup and cleanup plus beforeEach/afterEach hooks."
+hooks:
+  beforeAll:
+    - id: create-hook-resource
+      use: "resources/create"
+      variables:
+        ownerId: "{{defaultOwnerId}}"
+        resourceName: "hook-resource"
+        correlationId: "{{correlationPrefix}}-hook-before-all"
+      with:
+        ownerId: "{{ownerId}}"
+        resourceName: "{{resourceName}}"
+      expect:
+        status: 201
+      extract:
+        hookResourceId:
+          fromDefinition: resourceId
+          scope: suite
+          required: true
+
+  beforeEach:
+    - id: before-each-wait
+      wait:
+        forMs: 1
+
+  afterEach:
+    - id: after-each-wait
+      wait:
+        forMs: 1
+
+  afterAll:
+    - id: delete-hook-resource
+      use: "resources/delete"
+      variables:
+        resourceId: "{{hookResourceId}}"
+      expect:
+        status: 204
+
+tests:
+  - id: hook-resource-is-available
+    name: "Resource created in beforeAll is visible to the test"
+    tags: [pipeline, hooks]
+    steps:
+      - id: get-hook-resource
+        use: "resources/get"
+        variables:
+          resourceId: "{{hookResourceId}}"
+          correlationId: "{{correlationPrefix}}-hook-test"
+        expect:
+          status: 200
+          body:
+            path: "$.data.id"
+            equals: "{{hookResourceId}}"

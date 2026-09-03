@@ -1,0 +1,10 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "payloads/binary-file"
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/file"
+  bodyFile: "fixtures/payload.bin"
+  bodyFileMode: binary
+

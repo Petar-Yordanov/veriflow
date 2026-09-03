@@ -1,0 +1,8 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "session/login"
+name: "Create fixture session"
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/session/login"

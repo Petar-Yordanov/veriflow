@@ -1,0 +1,87 @@
+formatVersion: "1.0"
+kind: testSuite
+id: control-flow
+info:
+  name: "03 Control flow"
+  description: "Retry, repeat/warmup, wait-only, redirect behavior, text assertions, timing, artifacts, and skipped tests."
+tests:
+  - id: retry-on-status
+    tags: [pipeline, retry]
+    steps:
+      - id: retry-until-ready
+        use: "control/retry"
+        retry:
+          count: 2
+          delayMs: 5
+          when:
+            statusIn: [503]
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.attempt"
+                equals: 3
+              - path: "$.status"
+                equals: ready
+
+  - id: repeat-and-warmup
+    tags: [pipeline, repeat]
+    steps:
+      - id: repeated-call
+        use: "control/repeat"
+        repeat:
+          warmupCount: 1
+          count: 3
+        expect:
+          status: 200
+          body:
+            path: "$.seen"
+            greaterThan: 1
+
+  - id: waits-redirects-text-and-artifacts
+    tags: [pipeline, control]
+    steps:
+      - id: tiny-wait
+        wait:
+          forMs: 5
+
+      - id: redirect-not-followed
+        use: "control/redirect"
+        expect:
+          status: 302
+          headers:
+            Location:
+              equals: /health
+
+      - id: text-response
+        use: "control/text"
+        expect:
+          status: 200
+          headers:
+            X-Pipeline:
+              equals: ready
+          text:
+            contains: "{{expectedTextFragment}}"
+            matches: "^pipeline-ok:"
+        artifacts:
+          saveResponseBodyTo: "pipeline/text-response.txt"
+          saveHeadersTo: "pipeline/text-headers.json"
+          saveTimingTo: "pipeline/text-timing.json"
+
+      - id: slow-but-bounded
+        use: "control/slow"
+        expect:
+          status: 200
+          performance:
+            totalMs:
+              lessThan: 1000
+
+  - id: intentionally-skipped
+    name: "Skipped test contributes to consolidated totals"
+    tags: [pipeline, skip]
+    skip: true
+    skipReason: "Demonstrate pipeline-safe skip accounting"
+    steps:
+      - id: never-runs
+        use: "health/get"
+

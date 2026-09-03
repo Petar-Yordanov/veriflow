@@ -1,0 +1,36 @@
+formatVersion: "1.0"
+kind: testSuite
+id: data-cases
+info:
+  name: "08 Named data cases"
+  description: "Stable named cases expand one test definition into independent CI-visible test results."
+tests:
+  - id: echo-by-role
+    name: Echo by role
+    tags: [pipeline, cases]
+    variables:
+      queryValue: common-query
+    cases:
+      guest:
+        name: Guest
+        variables:
+          pathValue: guest
+          queryValue: guest-query
+      admin:
+        name: Administrator
+        variables:
+          pathValue: admin
+          queryValue: admin-query
+    steps:
+      - id: echo
+        use: "echo/get"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.pathValue"
+                equals: "{{pathValue}}"
+              - path: "$.query"
+                equals: "{{queryValue}}"
+              - path: "$.token"
+                equals: "{{tokenValue}}"

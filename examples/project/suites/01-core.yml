@@ -1,0 +1,104 @@
+formatVersion: "1.0"
+kind: testSuite
+id: core
+info:
+  name: "01 Core lifecycle"
+  description: "Convention resolution, recursive aliases, extraction, and dynamic assertions."
+globals:
+  variables:
+    suiteOwnerAlias: "{{defaultOwnerId}}"
+    resourceNamePrefix: "pipeline-resource"
+tests:
+  - id: health
+    name: "Health through recursively aliased environment URL"
+    tags: [smoke, pipeline]
+    steps:
+      - id: get-health
+        use: "health/get"
+        expect:
+          status: 200
+          headers:
+            Content-Type:
+              contains: "application/json"
+          body:
+            and:
+              - path: "$.status"
+                equals: "{{expectedHealthStatus}}"
+              - path: "$.service"
+                matches: "^veriflow-example-api$"
+              - path: "$.version"
+                type: number
+                greaterThanOrEqual: 1
+
+  - id: resource-lifecycle
+    name: "Extract ID and reuse it in path and assertions"
+    tags: [smoke, variables, extraction]
+    variables:
+      testOwnerAlias: "{{suiteOwnerAlias}}"
+      resourceName: "{{resourceNamePrefix}}-001"
+    steps:
+      - id: create
+        use: "resources/create"
+        variables:
+          ownerId: "{{testOwnerAlias}}"
+          correlationId: "{{correlationPrefix}}-create"
+        with:
+          ownerId: "{{testOwnerAlias}}"
+          resourceName: "{{resourceName}}"
+        expect:
+          status: 201
+          body:
+            and:
+              - path: "$.data.ownerId"
+                equals: "{{testOwnerAlias}}"
+              - path: "$.data.name"
+                equals: "{{resourceName}}"
+        extract:
+          createdResourceId:
+            fromDefinition: resourceId
+            scope: test
+            required: true
+
+      - id: get
+        use: "resources/get"
+        variables:
+          resourceId: "{{createdResourceId}}"
+          expectedIdAlias: "{{resourceId}}"
+          correlationId: "{{correlationPrefix}}-get"
+        expect:
+          status: [200]
+          body:
+            and:
+              - path: "$.data.id"
+                equals: "{{expectedIdAlias}}"
+              - path: "$.data.status"
+                in: [Open, Closed]
+              - path: "$.data.status"
+                notEquals: Closed
+              - path: "$.data.tags"
+                contains: beta
+                count: 3
+                minCount: 2
+                maxCount: 5
+                unique: true
+              - path: "$.data.score"
+                greaterThan: 40
+                lessThanOrEqual: 42
+              - path: "$.data.active"
+                type: boolean
+                equals: true
+              - path: "$.data.nullable"
+                isNull: true
+              - path: "$.data.createdAt"
+                after: "2026-01-01T00:00:00Z"
+                before: "2027-01-01T00:00:00Z"
+              - path: "$.data.correlationId"
+                equals: "{{correlationPrefix}}-get"
+
+      - id: delete
+        use: "resources/delete"
+        variables:
+          resourceId: "{{createdResourceId}}"
+        expect:
+          status: 204
+

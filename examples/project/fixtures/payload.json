@@ -1,0 +1,8 @@
+{
+  "name": "{{pipelineName}}",
+  "enabled": true,
+  "count": "{{nested.defaultValue}}",
+  "nested": {
+    "kind": "fixture"
+  }
+}

@@ -1,0 +1,17 @@
+formatVersion: "1.0"
+kind: testSuite
+info:
+  name: "Negative - conflicting body modes"
+tests:
+  - id: conflicting-body
+    steps:
+      - id: invalid-request
+        request:
+          method: POST
+          url: "http://127.0.0.1:18080/api/raw"
+          body:
+            hello: world
+          bodyRaw: "also-set"
+        expect:
+          status: 200
+

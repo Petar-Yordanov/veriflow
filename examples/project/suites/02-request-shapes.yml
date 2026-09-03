@@ -1,0 +1,111 @@
+formatVersion: "1.0"
+kind: testSuite
+id: request-shapes
+info:
+  name: "02 Request shapes"
+  description: "Path/query/header encoding, raw/form/multipart bodies, and external files."
+tests:
+  - id: path-query-header
+    tags: [pipeline, encoding]
+    variables:
+      pathValue: "hello world/with slash"
+      queryValue: "a b&c=d"
+    steps:
+      - id: echo
+        use: "echo/get"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.pathValue"
+                equals: "{{pathValue}}"
+              - path: "$.query"
+                equals: "{{queryValue}}"
+              - path: "$.token"
+                equals: "{{tokenValue}}"
+
+  - id: inline-request
+    tags: [pipeline, inline]
+    steps:
+      - id: inline-health
+        request:
+          method: GET
+          url: "{{apiAlias}}/health"
+        expect:
+          status: 200
+          body:
+            path: "$.status"
+            equals: ok
+
+  - id: body-modes
+    tags: [pipeline, payload]
+    steps:
+      - id: raw-body
+        use: "payloads/raw"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.body"
+                equals: "prefix={{pipelineName}};value={{nested.defaultValue}}"
+              - path: "$.length"
+                greaterThan: 10
+
+      - id: text-file
+        use: "payloads/text-file"
+        expect:
+          status: 200
+          body:
+            path: "$.body"
+            contains: "ci-command-line"
+
+      - id: json-file
+        use: "payloads/json-file"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.received.name"
+                equals: "{{pipelineName}}"
+              - path: "$.received.enabled"
+                equals: true
+              - path: "$.received.count"
+                equals: "{{nested.defaultValue}}"
+              - path: "$.received.nested.kind"
+                equals: fixture
+
+      - id: binary-file
+        use: "payloads/binary-file"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.length"
+                equals: 14
+              - path: "$.sha256"
+                equals: "8a340defc2ffdc2f78bc67965b55fc860cda090778b7559c67084cbfc58e2925"
+
+      - id: form
+        use: "payloads/form"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.name"
+                equals: "{{pipelineName}}"
+              - path: "$.count"
+                contains: "{{nested.defaultValue}}"
+
+      - id: multipart
+        use: "payloads/multipart"
+        expect:
+          status: 200
+          body:
+            and:
+              - path: "$.note"
+                equals: "{{pipelineName}}"
+              - path: "$.filename"
+                equals: payload.txt
+              - path: "$.size"
+                greaterThan: 10
+

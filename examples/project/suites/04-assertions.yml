@@ -1,0 +1,79 @@
+formatVersion: "1.0"
+kind: testSuite
+id: assertions
+info:
+  name: "04 Assertion operators"
+  description: "Broad positive coverage of scalar, collection, regex, null, type, OR, and date operators."
+tests:
+  - id: assertion-matrix
+    tags: [pipeline, assertions]
+    variables:
+      expectedNumber: 42
+      expectedWord: pipeline
+    steps:
+      - id: assert-response
+        use: "control/assertions"
+        expect:
+          status: [200, 201]
+          body:
+            and:
+              - path: "$.string"
+                contains: "{{expectedWord}}"
+                notContains: forbidden
+                equalsIgnoreCase: "HELLO PIPELINE"
+                startsWith: "hello"
+                endsWith: "pipeline"
+                length: 14
+                minLength: 10
+                maxLength: 20
+                matches: "^hello [a-z]+$"
+              - path: "$.number"
+                equals: "{{expectedNumber}}"
+                notEquals: 41
+                in: [40, 41, 42]
+                notIn: [1, 2, 3]
+                greaterThanOrEqual: 42
+                lessThanOrEqual: 42
+              - path: "$.boolean"
+                type: boolean
+                equals: true
+              - path: "$.nullable"
+                exists: true
+                isNull: true
+              - path: "$.items"
+                type: array
+                contains: alpha
+                count: 3
+                length: 3
+                minLength: 2
+                maxLength: 4
+                unique: true
+              - path: "$.objects[*].id"
+                count: 2
+                contains: 2
+              - path: "$.objects[?(@.id >= 2)].id"
+                equals: 2
+              - path: "$..['id']"
+                count: 4
+              - path: "$.items[0,2]"
+                count: 2
+                contains: alpha
+              - path: "$.items[-1]"
+                equals: gamma
+              - path: "$.items[::-1]"
+                count: 3
+                contains: beta
+              - path: "$.users[?(@.age >= $.minimumAge)].name"
+                equals: alice
+              - path: "$..['id','code']"
+                count: 6
+                contains: A1
+              - path: "$.createdAt"
+                onOrAfter: "2026-06-01T12:00:00Z"
+                onOrBefore: "2026-06-01T12:00:00Z"
+            or:
+              - path: "$.number"
+                equals: 999
+              - path: "$.string"
+                equals: "hello pipeline"
+

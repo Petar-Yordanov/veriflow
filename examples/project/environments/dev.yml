@@ -1,0 +1,7 @@
+formatVersion: "1.0"
+kind: environment
+name: dev
+extends: base
+variables:
+  correlationPrefix: "dev"
+  pipelineName: "local"

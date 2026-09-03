@@ -1,0 +1,10 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "control/repeat"
+request:
+  method: GET
+  baseUrl: "{{apiAlias}}"
+  path: "/api/repeat"
+  query:
+    key: "{{runId}}"
+

@@ -1,0 +1,10 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "resources/delete"
+request:
+  method: DELETE
+  baseUrl: "{{apiAlias}}"
+  path: "/api/resources/{resourceId}"
+  pathParams:
+    resourceId: "{{resourceId}}"
+

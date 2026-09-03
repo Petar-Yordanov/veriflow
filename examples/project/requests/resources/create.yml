@@ -1,0 +1,26 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "resources/create"
+inputs:
+  ownerId:
+    type: string
+    required: true
+  resourceName:
+    type: string
+    required: true
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/resources"
+  headers:
+    X-Correlation-ID: "{{correlationId}}"
+  body:
+    ownerId: "{{inputs.ownerId}}"
+    name: "{{inputs.resourceName}}"
+outputs:
+  resourceId:
+    path: "$.data.id"
+    required: true
+  returnedOwnerId:
+    path: "$.data.ownerId"
+

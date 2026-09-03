@@ -1,0 +1,77 @@
+formatVersion: "1.0"
+kind: testSuite
+id: "session-and-extraction"
+info:
+  name: "06 Session and extraction"
+
+tests:
+  - id: "cookie-jar-session"
+    name: "Cookie jar persists server session"
+    tags: [pipeline, session]
+    steps:
+      - id: "login"
+        use: "session/login"
+        expect:
+          status: 204
+        extract:
+          sessionCookie:
+            fromCookie: "session"
+            scope: test
+            required: true
+            sensitive: true
+
+      - id: "read-session"
+        use: "session/me"
+        expect:
+          status: 200
+          body:
+            path: "$.session"
+            equals: "{{sessionCookie}}"
+
+  - id: "multi-source-extraction"
+    name: "Header cookie text and status extraction"
+    tags: [pipeline, extraction]
+    steps:
+      - id: "extract"
+        use: "control/extraction"
+        expect:
+          status: 200
+        extract:
+          traceId:
+            fromHeader: "X-Trace-ID"
+            scope: test
+            required: true
+          marker:
+            fromCookie: "marker"
+            scope: test
+            required: true
+          ticket:
+            fromTextRegex: "ticket=(.+)"
+            scope: test
+            required: true
+          extractedStatus:
+            fromStatus: true
+            scope: test
+            required: true
+
+      - id: "consume"
+        request:
+          method: GET
+          baseUrl: "{{apiAlias}}"
+          path: "/api/echo/{traceId}"
+          pathParams:
+            traceId: "{{traceId}}"
+          query:
+            q: "{{marker}}"
+          headers:
+            X-Token: "{{ticket}}"
+        expect:
+          status: "{{extractedStatus}}"
+          body:
+            and:
+              - path: "$.pathValue"
+                equals: "{{traceId}}"
+              - path: "$.query"
+                equals: "{{marker}}"
+              - path: "$.token"
+                equals: "{{ticket}}"

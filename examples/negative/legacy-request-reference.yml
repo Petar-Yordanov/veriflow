@@ -1,0 +1,12 @@
+formatVersion: "1.0"
+kind: testSuite
+info:
+  name: "Negative - legacy request reference"
+tests:
+  - id: legacy-reference
+    steps:
+      - id: invalid-use
+        use: "../requests/health/get.yml"
+        expect:
+          status: 200
+

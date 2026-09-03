@@ -1,0 +1,13 @@
+formatVersion: "1.0"
+kind: environment
+name: base
+variables:
+  serverOrigin: "http://127.0.0.1:18080"
+  apiBaseUrl: "{{serverOrigin}}"
+  apiAlias: "{{apiBaseUrl}}"
+  defaultOwnerId: "00000000-0000-0000-0000-000000000001"
+  expectedHealthStatus: "ok"
+  expectedResourceStatus: "Open"
+  expectedTextFragment: "hello world"
+  nested:
+    defaultValue: 7

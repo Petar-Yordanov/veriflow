@@ -1,0 +1,28 @@
+formatVersion: "1.0"
+kind: testSuite
+id: "smoke"
+info:
+  name: "Smoke"
+  description: "Migrated original smoke suite using request and environment conventions."
+globals:
+  variables: {}
+tests:
+  - id: "smoke"
+    name: "Original smoke flow"
+    tags: [smoke, migrated]
+    steps:
+      - id: "get"
+        use: "auth/get"
+        variables:
+          expectedUrl: "{{apiAlias}}/get"
+        expect:
+          status: 200
+          body:
+            path: "$.url"
+            equals: "{{expectedUrl}}"
+        extract:
+          finalUrl:
+            fromDefinition: "url"
+            scope: test
+            required: true
+

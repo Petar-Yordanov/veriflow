@@ -1,0 +1,11 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "payloads/form"
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/form"
+  form:
+    name: "{{pipelineName}}"
+    count: "{{nested.defaultValue}}"
+

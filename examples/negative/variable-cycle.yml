@@ -1,0 +1,19 @@
+formatVersion: "1.0"
+kind: testSuite
+info:
+  name: "Negative - variable cycle"
+tests:
+  - id: cycle
+    variables:
+      a: "{{b}}"
+      b: "{{a}}"
+    steps:
+      - id: cycle-fails-before-request
+        request:
+          method: GET
+          url: "{{apiAlias}}/health"
+        variables:
+          trigger: "{{a}}"
+        expect:
+          status: 200
+

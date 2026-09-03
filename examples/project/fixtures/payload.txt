@@ -1,0 +1,2 @@
+Veriflow pipeline payload for {{pipelineName}}.
+Second line uses value {{nested.defaultValue}}.

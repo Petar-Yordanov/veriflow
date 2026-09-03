@@ -1,0 +1,10 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "payloads/json-file"
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/json-file"
+  bodyFile: "fixtures/payload.json"
+  bodyFileMode: json
+

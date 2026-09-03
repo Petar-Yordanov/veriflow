@@ -1,0 +1,10 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "payloads/text-file"
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/raw"
+  bodyFile: "fixtures/payload.txt"
+  bodyFileMode: text
+

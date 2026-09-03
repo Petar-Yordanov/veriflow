@@ -1,0 +1,9 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "payloads/raw"
+request:
+  method: POST
+  baseUrl: "{{apiAlias}}"
+  path: "/api/raw"
+  bodyRaw: "prefix={{pipelineName}};value={{nested.defaultValue}}"
+

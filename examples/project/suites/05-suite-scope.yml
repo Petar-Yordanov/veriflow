@@ -1,0 +1,41 @@
+formatVersion: "1.0"
+kind: testSuite
+id: suite-scope
+info:
+  name: "05 Suite-scoped extraction"
+  description: "Proves suite runtime values extracted in one test are available in later tests."
+tests:
+  - id: produce-suite-variable
+    tags: [pipeline, scope]
+    steps:
+      - id: create-suite-resource
+        use: "resources/create"
+        variables:
+          ownerId: "{{defaultOwnerId}}"
+          resourceName: "suite-scoped-resource"
+          correlationId: "{{correlationPrefix}}-suite-producer"
+        with:
+          ownerId: "{{ownerId}}"
+          resourceName: "{{resourceName}}"
+        extract:
+          suiteResourceId:
+            fromDefinition: resourceId
+            scope: suite
+            required: true
+        expect:
+          status: 201
+
+  - id: consume-suite-variable
+    tags: [pipeline, scope]
+    steps:
+      - id: get-suite-resource
+        use: "resources/get"
+        variables:
+          resourceId: "{{suiteResourceId}}"
+          correlationId: "{{correlationPrefix}}-suite-consumer"
+        expect:
+          status: 200
+          body:
+            path: "$.data.id"
+            equals: "{{suiteResourceId}}"
+

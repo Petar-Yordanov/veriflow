@@ -1,0 +1,16 @@
+formatVersion: "1.0"
+kind: testSuite
+info:
+  name: "Negative - bodyFile traversal"
+tests:
+  - id: traversal
+    steps:
+      - id: escaping-file
+        request:
+          method: POST
+          url: "http://127.0.0.1:18080/api/file"
+          bodyFile: "../../README.md"
+          bodyFileMode: text
+        expect:
+          status: 200
+

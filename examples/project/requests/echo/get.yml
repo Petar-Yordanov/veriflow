@@ -1,0 +1,16 @@
+formatVersion: "1.0"
+kind: requestDefinition
+id: "echo/get"
+request:
+  method: GET
+  baseUrl: "{{apiAlias}}"
+  path: "/api/echo/{value}"
+  pathParams:
+    value: "{{pathValue}}"
+  pathParamEncoding:
+    enabled: true
+  query:
+    q: "{{queryValue}}"
+  headers:
+    X-Token: "{{tokenValue}}"
+
